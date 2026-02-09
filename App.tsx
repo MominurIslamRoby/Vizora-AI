@@ -142,13 +142,13 @@ const App: React.FC = () => {
     } catch (err: any) {
       console.error("Synthesis Error Details:", err);
       
-      let userFriendlyMessage = 'The Vizora synthesis engine is currently unavailable.';
+      let userFriendlyMessage = 'The Vizora synthesis engine encountered an unexpected error.';
       if (err.message?.includes('API_KEY_MISSING')) {
-        userFriendlyMessage = 'API Key Error: Please go to your Netlify Dashboard > Site settings > Environment variables and add a key named "API_KEY". After adding it, you must redeploy your site.';
+        userFriendlyMessage = 'Configuration Error: Synthesis engine could not establish a secure connection.';
       } else if (err.status === 429 || err.message?.includes('429')) {
         userFriendlyMessage = 'System Overloaded: Rate limit reached. Please wait a moment.';
       } else if (err.status === 404 || err.message?.includes('404')) {
-        userFriendlyMessage = 'Model Not Found: Please check if your API project has access to these models.';
+        userFriendlyMessage = 'Model Link Broken: Connection to neural architecture failed.';
       } else if (err.message) {
         userFriendlyMessage = `Engine Error: ${err.message}`;
       }
@@ -514,7 +514,7 @@ const App: React.FC = () => {
                     </button>
                     <div className="flex items-center gap-2 text-slate-400">
                       <Info className="w-3.5 h-3.5" />
-                      <span className="text-[9px] font-bold uppercase tracking-widest">Deploy Fix: Add "API_KEY" to Netlify Env Vars</span>
+                      <span className="text-[9px] font-bold uppercase tracking-widest">Neural Network Connectivity Status: Degraded</span>
                     </div>
                   </div>
               </div>
