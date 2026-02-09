@@ -144,7 +144,7 @@ const App: React.FC = () => {
       
       let userFriendlyMessage = 'The Vizora synthesis engine is currently unavailable.';
       if (err.message?.includes('API_KEY_MISSING')) {
-        userFriendlyMessage = 'Configuration Error: API Key is not set in environment variables.';
+        userFriendlyMessage = 'API Key Error: Please go to your Netlify Dashboard > Site settings > Environment variables and add a key named "API_KEY". After adding it, you must redeploy your site.';
       } else if (err.status === 429 || err.message?.includes('429')) {
         userFriendlyMessage = 'System Overloaded: Rate limit reached. Please wait a moment.';
       } else if (err.status === 404 || err.message?.includes('404')) {
@@ -514,7 +514,7 @@ const App: React.FC = () => {
                     </button>
                     <div className="flex items-center gap-2 text-slate-400">
                       <Info className="w-3.5 h-3.5" />
-                      <span className="text-[9px] font-bold uppercase tracking-widest">Verify API Key in Netlify Settings</span>
+                      <span className="text-[9px] font-bold uppercase tracking-widest">Deploy Fix: Add "API_KEY" to Netlify Env Vars</span>
                     </div>
                   </div>
               </div>

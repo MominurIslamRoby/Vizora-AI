@@ -9,10 +9,10 @@ import { getContextForPrompt } from "./memoryService";
 
 /**
  * Safely retrieves the API key from the environment.
- * Adheres to the requirement of using process.env.API_KEY directly.
+ * Uses process.env.API_KEY directly to allow bundlers to inject it at build time.
  */
 const getAi = () => {
-  const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : (window as any).process?.env?.API_KEY;
+  const apiKey = process.env.API_KEY;
   if (!apiKey) {
     throw new Error("API_KEY_MISSING: The Google GenAI API key is not defined in the environment (process.env.API_KEY).");
   }
