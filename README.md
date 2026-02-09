@@ -1,15 +1,11 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/MominurIslamRoby/Vizora-AI/main/assets/vizora-banner.gif" alt="Vizora Banner" width="100%" />
-</p>
-
-<h1 align="center"> VIZORA</h1>
+<h1 align="center">VIZORA</h1>
 
 <h3 align="center">
 AI-Grounded Knowledge Mapping & Visual Synthesis Engine
 </h3>
 
 <p align="center">
-  <i>Visualize verified knowledge. Instantly.</i>
+  <i>Visualize verified knowledge — instantly.</i>
 </p>
 
 <p align="center">
@@ -25,42 +21,58 @@ AI-Grounded Knowledge Mapping & Visual Synthesis Engine
 
 ---
 
-## 🧠 What is Vizora?
+## 🧠 Overview
 
-**Vizora** is a high-performance, AI-powered knowledge visualization platform that transforms any topic into:
+**Vizora** is a high-performance, AI-powered knowledge visualization platform designed to bridge the gap between complex research and accessible information design.
 
-- 📊 Verified research reports  
+It enables users to transform any topic into:
+- 📊 Source-grounded research reports  
 - 🎨 High-fidelity AI-generated infographics  
-- 🧩 Interactive visual knowledge matrices  
+- 🧩 Interactive, structured visual knowledge matrices  
 
-All content is **search-grounded**, **audience-adaptive**, and **visually synthesized** for clarity and trust.
+All outputs are **search-grounded**, **audience-aware**, and **visually synthesized** for clarity, trust, and comprehension.
 
 ---
 
-## ✨ Core Philosophy
+## 🎬 Product Demo (UI Walkthrough)
+
+![Vizora](https://github.com/user-attachments/assets/1f14b811-876d-4c88-b05a-ff26a2d1703a)
+
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/MominurIslamRoby/Vizora-AI/main/assets/vision-core.gif" width="80%" />
+  <!-- <img src="./assets/vizora-ui-demo.gif" width="95%" /> -->
 </p>
+
+<p align="center">
+  <i>End-to-end visualization of Vizora’s AI-grounded research and visual synthesis workflow</i>
+</p>
+
+---
+
+## 🎯 Core Vision
+
+Vizora is built on three foundational pillars:
 
 ### 🔍 Accuracy
 - Real-time Google Search grounding via Gemini API
-- Transparent source references for every generation
+- Transparent reference listing for every generation
+- Reduced hallucination risk through source attribution
 
 ### 🎓 Accessibility
-- Dynamic complexity scaling:
+- Dynamic complexity scaling for different audiences:
   - Elementary
   - High School
   - College
   - Domain Expert
+- Clear, structured explanations tailored to user intent
 
 ### 🎨 Aesthetics
-- Multi-style visual synthesis:
+- Multi-style visual synthesis for enhanced cognition:
   - Cyberpunk
   - Blueprint
   - Minimalist
   - 3D Isometric
-  - Technical Sketches
+  - Technical Sketch
   - Neon Holographic
 
 ---
@@ -68,61 +80,61 @@ All content is **search-grounded**, **audience-adaptive**, and **visually synthe
 ## ⚙️ Key Features
 
 ### 🧠 Neural Research Engine
-- **Search-Grounded Intelligence** (no hallucinated facts)
-- **Extended Reasoning Mode** for complex STEM analysis
-- **Audience-aware explanations**
+- **Search-Grounded Intelligence** using Gemini search tools
+- **Extended reasoning mode** for complex analytical and STEM topics
+- Audience-adaptive linguistic and conceptual depth
 
-### 🧩 Vizora Matrix (Visual Synthesis)
-- AI-generated infographics (8+ styles)
-- Interactive timeline & process matrix
-- Natural-language visual editing (image-to-image)
+### 🧩 Vizora Matrix (Visual Synthesis Engine)
+- High-resolution AI-generated infographics
+- Interactive timelines and process matrices
+- Natural-language image editing (image-to-image synthesis)
 
 ### 🔊 Narration & Accessibility
-- Neural Text-to-Speech (Gemini native audio)
-- Voices: **Zephyr** & **Kore**
-- Multilingual support (11 major languages)
+- Neural Text-to-Speech using Gemini native audio
+- Voice options: **Zephyr** and **Kore**
+- Multilingual support for 11 major world languages
 
-### ☁️ Workspace & Persistence
-- Secure user authentication
-- Cloud-saved “Visions”
-- Local continuity-based memory graph
+### ☁️ Data Persistence & Workspace
+- Secure authentication and user sessions
+- Cloud-based storage of saved “Visions”
+- Local continuity-based concept tracking
 - Export options:
   - PNG / JPEG / WebP
-  - Full PDF Research Reports
+  - Comprehensive PDF research reports
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Technology Stack
 
 ### Frontend
-- ⚛️ React 19
-- 🎨 Tailwind CSS
-- 🧭 Lucide Icons
+- ⚛️ React 19 (Hooks-based architecture)
+- 🎨 Tailwind CSS (Dark / Light adaptive UI)
+- 🧭 Lucide React Icons
 
 ### AI & Intelligence
-- 🤖 Gemini 3 Flash / Pro (Text & Reasoning)
-- 🖼️ Gemini 2.5 Flash Image
-- 🔊 Gemini 2.5 Flash TTS
+- 🤖 Gemini 3 Flash / Pro — text synthesis & reasoning
+- 🖼️ Gemini 2.5 Flash Image — infographic generation & editing
+- 🔊 Gemini 2.5 Flash TTS — audio narration
 
 ### Backend & Infrastructure
-- 🗄️ Supabase (Auth + PostgreSQL)
-- 🔐 Environment-based API security
-- 🌐 Netlify Deployment
+- 🗄️ Supabase — authentication & PostgreSQL database
+- 🔐 Secure environment-based API key injection
+- 🌐 Netlify — production deployment
 
 ---
 
-## 🧪 User Experience
+## 🧪 User Experience Design
 
-- ⚛️ **Reactor Core Loader** — visualizes data synthesis
-- 🖥️ Futuristic HUD-inspired UI
-- 📱 Fully responsive (mobile → desktop)
-- 🔗 Grounded reference panel for transparency
+- ⚛️ **Reactor Core Loader** visualizing synthesis progress
+- 🖥️ Futuristic HUD-inspired interface
+- 📱 Fully responsive across mobile, tablet, and desktop
+- 🔗 Grounded reference panel for transparency and trust
 
 ---
 
-## 🌍 Live Demo
+## 🌍 Live Application
 
-👉 **Try Vizora now:**  
+👉 **Try Vizora here:**  
 🔗 https://vizora-ai.netlify.app
 
 ---
@@ -130,8 +142,8 @@ All content is **search-grounded**, **audience-adaptive**, and **visually synthe
 ## 🚧 Project Status
 
 - 🟡 Version: **2026 Beta – Neural Vision Update**
-- 🔄 Actively evolving
-- 🧠 Research-focused feature expansion planned
+- 🔄 Actively under development
+- 📈 Designed for scalability and research-focused expansion
 
 ---
 
@@ -140,22 +152,18 @@ All content is **search-grounded**, **audience-adaptive**, and **visually synthe
 **Architect & Lead Engineer**  
 👤 **Mominur Islam Roby**
 
-**Technology Foundation**  
-- Google Gemini AI  
-- Supabase Matrix Systems  
+**Technology Foundation**
+- Google Gemini AI
+- Supabase Matrix Systems
 
 ---
 
 ## 📜 License
 
 This project is licensed under the **MIT License**.  
-You are free to use, modify, and distribute with attribution.
+You are free to use, modify, and distribute this software with attribution.
 
 ---
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/MominurIslamRoby/Vizora-AI/main/assets/footer-wave.svg" width="100%" />
-</p>
 
 <p align="center">
   <b>Vizora — Visualize the Knowledge.</b>
