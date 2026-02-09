@@ -24,7 +24,7 @@ import {
   Search, AlertCircle, History, GraduationCap, Palette, Microscope, 
   Compass, Sun, Moon, Heart, LayoutTemplate, Globe, Zap, Trash2,
   Facebook, Github, Linkedin, BrainCircuit, ChevronDown, LogOut, User as UserIcon,
-  XCircle, Loader2
+  XCircle, Loader2, Info
 } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -104,17 +104,15 @@ const App: React.FC = () => {
     setLoadingMessage(isDeepDive ? `Deep Reasoning in progress...` : `Exploring the Vizora universe...`);
 
     try {
+      // 1. Research & Analysis
       const researchResult = await researchTopicForPrompt(topic, complexityLevel, visualStyle, language, isDeepDive);
-      
-      // Update local cognitive memory layer
       updateMemoryFromResearch(topic, complexityLevel, researchResult.facts);
-      
       setLoadingFacts(researchResult.facts);
       setCurrentSearchResults(researchResult.searchResults);
       
+      // 2. Visual Synthesis
       setLoadingStep(2);
       setLoadingMessage(`Synthesizing Visuals...`);
-      
       let base64Data = await generateInfographicImage(researchResult.imagePrompt, aspectRatio);
       
       const newImage: GeneratedImage = {
@@ -130,16 +128,32 @@ const App: React.FC = () => {
         isDeepDive
       };
 
-      // Persist to Supabase Backend
+      // 3. Persistent Storage
       if (session?.user?.id) {
-        const dbVision = await saveVisionToDb(newImage, session.user.id);
-        newImage.id = dbVision.id;
+        try {
+          const dbVision = await saveVisionToDb(newImage, session.user.id);
+          newImage.id = dbVision.id;
+        } catch (dbErr) {
+          console.warn("Local storage success, but cloud sync failed:", dbErr);
+        }
       }
 
       setImageHistory([newImage, ...imageHistory]);
     } catch (err: any) {
-      console.error("App Synthesis Error:", err);
-      setError('The Vizora synthesis engine is temporarily offline.');
+      console.error("Synthesis Error Details:", err);
+      
+      let userFriendlyMessage = 'The Vizora synthesis engine is currently unavailable.';
+      if (err.message?.includes('API_KEY_MISSING')) {
+        userFriendlyMessage = 'Configuration Error: API Key is not set in environment variables.';
+      } else if (err.status === 429 || err.message?.includes('429')) {
+        userFriendlyMessage = 'System Overloaded: Rate limit reached. Please wait a moment.';
+      } else if (err.status === 404 || err.message?.includes('404')) {
+        userFriendlyMessage = 'Model Not Found: Please check if your API project has access to these models.';
+      } else if (err.message) {
+        userFriendlyMessage = `Engine Error: ${err.message}`;
+      }
+      
+      setError(userFriendlyMessage);
     } finally {
       setIsLoading(false);
       setLoadingStep(0);
@@ -171,7 +185,8 @@ const App: React.FC = () => {
 
       setImageHistory([newImage, ...imageHistory]);
     } catch (err: any) {
-      setError('Modification failed.');
+      console.error("Modification Error:", err);
+      setError(`Modification failed: ${err.message || 'Unknown error'}`);
     } finally {
       setIsLoading(false);
       setLoadingStep(0);
@@ -208,16 +223,13 @@ const App: React.FC = () => {
         const currentVision = imageHistory[0];
         
         try {
-          // Update UI state immediately for responsiveness
           setImageHistory([currentVision]);
-          
-          // Perform backend cleanup if session and current vision ID are synced
           if (session?.user?.id && currentVision.id && !currentVision.id.includes('.')) {
             await clearArchivesFromDb(session.user.id, currentVision.id);
           }
         } catch (err: any) {
           console.error("Clear Archives Error:", err);
-          setError("Failed to fully synchronize cloud archives. Please refresh.");
+          setError("Failed to fully synchronize cloud archives.");
         }
     }
   };
@@ -229,22 +241,14 @@ const App: React.FC = () => {
     }
   };
 
-  /**
-   * Performs a clean refresh of the UI by resetting all active search/result states.
-   * This prepares the dashboard for new entries without the risk of browser-level crashes.
-   */
   const handlePageRefresh = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
-    
-    // Clear all dashboard entries and search state
     setTopic('');
     setImageHistory([]);
     setCurrentSearchResults([]);
     setError(null);
     setIsLoading(false);
     setIsDeepDive(false);
-    
-    // Scroll to the start of the app
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -343,7 +347,7 @@ const App: React.FC = () => {
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 dark:from-cyan-400 dark:via-indigo-400 dark:to-purple-400">Knowledge.</span>
               </h1>
               <p className="text-sm md:text-2xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto font-light leading-relaxed px-4">
-                Research-backed infographics generated using Google Search grounding. Perfect for students, educators, and experts.
+                Research-backed infographics generated using Google Search grounding.
               </p>
             </div>
           )}
@@ -492,11 +496,28 @@ const App: React.FC = () => {
         {isLoading && <Loading status={loadingMessage} step={loadingStep} facts={loadingFacts} />}
 
         {error && (
-          <div className="max-w-3xl mx-auto mt-12 p-6 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-3xl flex items-center gap-5 text-rose-800 dark:text-rose-200">
-            <AlertCircle className="w-8 h-8 flex-shrink-0 text-rose-500" />
-            <div>
-                <p className="font-bold mb-0.5 uppercase tracking-wide text-sm">System Alert</p>
-                <p className="opacity-80 text-sm">{error}</p>
+          <div className="max-w-3xl mx-auto mt-12 p-8 bg-white dark:bg-slate-900 border-2 border-rose-500/30 rounded-[2.5rem] shadow-2xl animate-in slide-in-from-top-4 duration-500">
+            <div className="flex items-start gap-6">
+              <div className="p-4 bg-rose-500/10 rounded-2xl">
+                 <AlertCircle className="w-8 h-8 text-rose-500" />
+              </div>
+              <div className="flex-1">
+                  <h3 className="text-xl font-display font-bold text-slate-900 dark:text-white mb-2 uppercase tracking-tight">Synthesis Disrupted</h3>
+                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-6 font-medium">{error}</p>
+                  
+                  <div className="flex items-center gap-4">
+                    <button 
+                      onClick={() => handleGenerate({ preventDefault: () => {} } as any)} 
+                      className="px-6 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                    >
+                      Retry Connection
+                    </button>
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <Info className="w-3.5 h-3.5" />
+                      <span className="text-[9px] font-bold uppercase tracking-widest">Verify API Key in Netlify Settings</span>
+                    </div>
+                  </div>
+              </div>
             </div>
           </div>
         )}
@@ -558,7 +579,6 @@ const App: React.FC = () => {
       <footer className="relative z-10 w-full py-16 border-t border-slate-200 dark:border-white/5 mt-32 bg-white/40 dark:bg-slate-950/20 backdrop-blur-md">
         <div className="max-w-[1600px] mx-auto px-8 flex flex-col md:flex-row items-center justify-between gap-12 text-center md:text-left">
           
-          {/* Brand Identity */}
           <div className="flex flex-col gap-2 order-2 md:order-1">
              <div 
                className="flex items-center gap-3 justify-center md:justify-start cursor-pointer group active:scale-95 transition-all duration-300"
@@ -570,21 +590,14 @@ const App: React.FC = () => {
              <p className="text-[10px] text-slate-400 dark:text-slate-600 font-bold uppercase tracking-[0.4em]">Knowledge Mapping Redefined</p>
           </div>
 
-          {/* Centralized Signature Block */}
           <div className="flex items-center justify-center order-1 md:order-2">
             <div className="flex items-center gap-3 md:gap-4 bg-slate-100/30 dark:bg-slate-950/60 backdrop-blur-3xl px-6 md:px-8 py-4 md:py-6 rounded-[3.5rem] border border-slate-200/50 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.5)] transition-all">
-              
-              {/* Facebook */}
               <a href="https://www.facebook.com/mominur.roby.00000007" target="_blank" rel="noopener noreferrer" className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-2xl md:rounded-3xl bg-slate-900/90 border border-white/5 text-slate-400 hover:text-blue-500 transition-all hover:border-white/20 shadow-inner group">
                 <Facebook className="w-5 h-5 md:w-6 md:h-6 group-hover:scale-110 transition-transform" />
               </a>
-
-              {/* GitHub */}
               <a href="https://github.com/MominurIslamRoby" target="_blank" rel="noopener noreferrer" className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-2xl md:rounded-3xl bg-slate-900/90 border border-white/5 text-slate-400 hover:text-white transition-all hover:border-white/20 shadow-inner group">
                 <Github className="w-5 h-5 md:w-6 md:h-6 group-hover:scale-110 transition-transform" />
               </a>
-
-              {/* CENTRAL PORTRAIT - Developer Avatar */}
               <div className="mx-3 md:mx-6 relative group">
                 <div className="absolute -inset-1.5 bg-gradient-to-tr from-cyan-400 to-indigo-500 rounded-full opacity-30 blur-md group-hover:opacity-60 transition-opacity"></div>
                 <div className="relative w-20 h-20 md:w-28 md:h-28 rounded-full border-4 border-slate-900 dark:border-slate-800 overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)] transition-transform group-hover:scale-105 duration-500">
@@ -598,21 +611,15 @@ const App: React.FC = () => {
                   />
                 </div>
               </div>
-
-              {/* LinkedIn */}
               <a href="https://www.linkedin.com/in/mominur-islam-roby/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-2xl md:rounded-3xl bg-slate-900/90 border border-white/5 text-slate-400 hover:text-blue-400 transition-all hover:border-white/20 shadow-inner group">
                 <Linkedin className="w-5 h-5 md:w-6 md:h-6 group-hover:scale-110 transition-transform" />
               </a>
-
-              {/* Portfolio Globe (Website) */}
               <a href="https://mominurislamroby.github.io/roby-portfolio/index.html" target="_blank" rel="noopener noreferrer" className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-2xl md:rounded-3xl bg-slate-900/90 border border-white/5 text-slate-400 hover:text-cyan-400 transition-all hover:border-white/20 shadow-inner group">
                 <Globe className="w-5 h-5 md:w-6 md:h-6 group-hover:scale-110 transition-transform" />
               </a>
-
             </div>
           </div>
 
-          {/* Copyright Metadata */}
           <div className="text-center md:text-right order-3">
              <div className="flex items-center justify-center md:justify-end gap-2 mb-1">
                 <Heart className="w-3 h-3 text-rose-500 fill-rose-500" />
@@ -620,7 +627,6 @@ const App: React.FC = () => {
              </div>
              <p className="text-[9px] text-slate-400 dark:text-slate-600 font-bold uppercase tracking-[0.5em]">© 2026 VIZORA • Mominur Islam Roby </p>
           </div>
-
         </div>
       </footer>
     </div>
