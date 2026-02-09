@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/MominurIslamRoby/Vizora-AI/main/assets/vizora-banner.gif" alt="Vizora Banner" width="100%" />
 </p>
 
-<h1 align="center">🚀 VIZORA</h1>
+<h1 align="center"> VIZORA</h1>
 
 <h3 align="center">
 AI-Grounded Knowledge Mapping & Visual Synthesis Engine
