@@ -25,26 +25,30 @@ AI-Grounded Knowledge Mapping & Visual Synthesis Engine
 
 **Vizora** is a high-performance, AI-powered knowledge visualization platform designed to bridge the gap between complex research and accessible information design.
 
-It enables users to transform any topic into:
+It transforms any topic into:
 - 📊 Source-grounded research reports  
 - 🎨 High-fidelity AI-generated infographics  
 - 🧩 Interactive, structured visual knowledge matrices  
 
-All outputs are **search-grounded**, **audience-aware**, and **visually synthesized** for clarity, trust, and comprehension.
+All outputs are **search-grounded**, **audience-adaptive**, and **visually synthesized** for clarity, trust, and comprehension.
 
 ---
 
-## 🎬 Product Demo (UI Walkthrough)
-
-![Vizora](https://github.com/user-attachments/assets/1f14b811-876d-4c88-b05a-ff26a2d1703a)
-
+## 🎬 Product Demo — UI Walkthrough
 
 <p align="center">
-  <!-- <img src="./assets/vizora-ui-demo.gif" width="95%" /> -->
+  <img
+    src="https://drive.google.com/uc?export=download&id=1UsuKBb7NM9ndnWua-xbY7caGzZMpVyLK"
+    width="95%"
+    alt="Vizora UI Walkthrough"
+  />
 </p>
 
 <p align="center">
-  <i>End-to-end visualization of Vizora’s AI-grounded research and visual synthesis workflow</i>
+  <i>
+    End-to-end demonstration of Vizora’s AI-grounded research,
+    reasoning pipeline, and visual synthesis engine
+  </i>
 </p>
 
 ---
@@ -55,19 +59,19 @@ Vizora is built on three foundational pillars:
 
 ### 🔍 Accuracy
 - Real-time Google Search grounding via Gemini API
-- Transparent reference listing for every generation
+- Explicit reference listing for transparency
 - Reduced hallucination risk through source attribution
 
 ### 🎓 Accessibility
-- Dynamic complexity scaling for different audiences:
+- Dynamic complexity scaling:
   - Elementary
   - High School
   - College
   - Domain Expert
-- Clear, structured explanations tailored to user intent
+- Structured explanations aligned with user intent
 
 ### 🎨 Aesthetics
-- Multi-style visual synthesis for enhanced cognition:
+- Multi-style visual synthesis to enhance comprehension:
   - Cyberpunk
   - Blueprint
   - Minimalist
@@ -80,14 +84,14 @@ Vizora is built on three foundational pillars:
 ## ⚙️ Key Features
 
 ### 🧠 Neural Research Engine
-- **Search-Grounded Intelligence** using Gemini search tools
-- **Extended reasoning mode** for complex analytical and STEM topics
-- Audience-adaptive linguistic and conceptual depth
+- Search-grounded intelligence using Gemini tools
+- Extended reasoning mode for complex analytical and STEM workflows
+- Audience-aware linguistic and conceptual depth
 
-### 🧩 Vizora Matrix (Visual Synthesis Engine)
+### 🧩 Vizora Matrix — Visual Synthesis Engine
 - High-resolution AI-generated infographics
 - Interactive timelines and process matrices
-- Natural-language image editing (image-to-image synthesis)
+- Natural-language image editing via image-to-image synthesis
 
 ### 🔊 Narration & Accessibility
 - Neural Text-to-Speech using Gemini native audio
@@ -96,9 +100,9 @@ Vizora is built on three foundational pillars:
 
 ### ☁️ Data Persistence & Workspace
 - Secure authentication and user sessions
-- Cloud-based storage of saved “Visions”
-- Local continuity-based concept tracking
-- Export options:
+- Cloud-saved research “Visions”
+- Continuity-based concept tracking
+- Export formats:
   - PNG / JPEG / WebP
   - Comprehensive PDF research reports
 
@@ -112,13 +116,13 @@ Vizora is built on three foundational pillars:
 - 🧭 Lucide React Icons
 
 ### AI & Intelligence
-- 🤖 Gemini 3 Flash / Pro — text synthesis & reasoning
+- 🤖 Gemini 3 Flash / Pro — research & reasoning
 - 🖼️ Gemini 2.5 Flash Image — infographic generation & editing
 - 🔊 Gemini 2.5 Flash TTS — audio narration
 
 ### Backend & Infrastructure
-- 🗄️ Supabase — authentication & PostgreSQL database
-- 🔐 Secure environment-based API key injection
+- 🗄️ Supabase — authentication & PostgreSQL
+- 🔐 Secure environment-based API handling
 - 🌐 Netlify — production deployment
 
 ---
@@ -127,23 +131,23 @@ Vizora is built on three foundational pillars:
 
 - ⚛️ **Reactor Core Loader** visualizing synthesis progress
 - 🖥️ Futuristic HUD-inspired interface
-- 📱 Fully responsive across mobile, tablet, and desktop
-- 🔗 Grounded reference panel for transparency and trust
+- 📱 Fully responsive across devices
+- 🔗 Grounded reference panel for verification and trust
 
 ---
 
 ## 🌍 Live Application
 
-👉 **Try Vizora here:**  
+👉 **Access Vizora:**  
 🔗 https://vizora-ai.netlify.app
 
 ---
 
 ## 🚧 Project Status
 
-- 🟡 Version: **2026 Beta – Neural Vision Update**
-- 🔄 Actively under development
-- 📈 Designed for scalability and research-focused expansion
+- 🟡 Version: **2026 Beta — Neural Vision Update**
+- 🔄 Actively evolving
+- 📈 Designed for scalability and research-grade use
 
 ---
 
@@ -161,7 +165,7 @@ Vizora is built on three foundational pillars:
 ## 📜 License
 
 This project is licensed under the **MIT License**.  
-You are free to use, modify, and distribute this software with attribution.
+Free to use, modify, and distribute with attribution.
 
 ---
 
