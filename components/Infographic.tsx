@@ -14,7 +14,10 @@ import {
   Twitter, Linkedin, Zap, Command, ChevronDown, FileImage,
   Bookmark, BookmarkCheck, Archive, Wand2, Layers, Type, Palette as PaletteIcon,
   Copy, ClipboardCheck, Share, Link as LinkIcon, Calendar, ArrowRight,
-  Facebook, FileText, FileBarChart
+  Facebook, FileText, FileBarChart, Square, Circle, Triangle, Box, 
+  Activity, Database, Network, Atom, Beaker, Brain, Cpu as CpuIcon, 
+  Dna, Microscope, Rocket, Shapes, MessageSquarePlus, ALargeSmall, 
+  TextCursorInput, Languages, CaseUpper
 } from 'lucide-react';
 
 interface InfographicProps {
@@ -33,10 +36,43 @@ const QUICK_EDITS = [
   { label: "Cyberpunk", prompt: "Apply a neon cyberpunk aesthetic with holographic elements and dark background.", icon: Zap },
 ];
 
+const VISUAL_ELEMENTS = [
+  { category: "Basic Shapes", items: [
+    { name: "Square", icon: Square, prompt: "Add a sleek geometric square element to the foreground." },
+    { name: "Circle", icon: Circle, prompt: "Inject a subtle circular data point marker into the composition." },
+    { name: "Triangle", icon: Triangle, prompt: "Add a triangular navigational symbol matching the current style." },
+    { name: "Flow Box", icon: Box, prompt: "Add a professional flowchart box to highlight a process step." },
+  ]},
+  { category: "Scientific", items: [
+    { name: "Atom", icon: Atom, prompt: "Incorporate an atomic structure symbol into the background." },
+    { name: "Beaker", icon: Beaker, prompt: "Add a laboratory beaker icon to symbolize experimental data." },
+    { name: "DNA", icon: Dna, prompt: "Add a double helix DNA strand as a decorative side element." },
+    { name: "Microscope", icon: Microscope, prompt: "Insert a stylized microscope icon to represent observation." },
+  ]},
+  { category: "Technical", items: [
+    { name: "Neural", icon: Brain, prompt: "Add a neural network icon to represent intelligence or connectivity." },
+    { name: "Circuit", icon: CpuIcon, prompt: "Apply a subtle integrated circuit board pattern to a section of the image." },
+    { name: "Rocket", icon: Rocket, prompt: "Add a minimalist rocket symbol to signify launch or progress." },
+    { name: "Network", icon: Network, prompt: "Add a node-based network graph icon to show interconnectedness." },
+  ]}
+];
+
+const TEXT_TRANSFORMS = [
+  { label: "Technical Font", prompt: "Change all text to a monospace technical drafting font style.", icon: CpuIcon },
+  { label: "Elegant Serif", prompt: "Convert all typography to a high-end, elegant serif font.", icon: CaseUpper },
+  { label: "Translate: ES", prompt: "Translate all English text in the image to Spanish.", icon: Languages },
+  { label: "Translate: FR", prompt: "Translate all English text in the image to French.", icon: Languages },
+  { label: "Bold Headers", prompt: "Make all primary headers significantly bolder and more prominent.", icon: Type },
+  { label: "Clean Sans", prompt: "Use a clean, modern Helvetica-style sans-serif font for all labels.", icon: ALargeSmall },
+];
+
 const Infographic: React.FC<InfographicProps> = ({ image, onEdit, isEditing, userId }) => {
   const [editPrompt, setEditPrompt] = useState('');
+  const [originalText, setOriginalText] = useState('');
+  const [newText, setNewText] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [editTab, setEditTab] = useState<'prompts' | 'elements' | 'text'>('prompts');
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isSharing, setIsSharing] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
@@ -84,6 +120,16 @@ const Infographic: React.FC<InfographicProps> = ({ image, onEdit, isEditing, use
     setIsEditMode(false);
   };
 
+  const handleTextReplace = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!originalText.trim() || !newText.trim()) return;
+    const prompt = `Change the text that says "${originalText}" to "${newText}" while keeping the same position, style, and font color.`;
+    onEdit(prompt);
+    setOriginalText('');
+    setNewText('');
+    setIsEditMode(false);
+  };
+
   const applyQuickEdit = (prompt: string) => {
     onEdit(prompt);
     setIsEditMode(false);
@@ -99,7 +145,6 @@ const Infographic: React.FC<InfographicProps> = ({ image, onEdit, isEditing, use
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
       
-      // Handle transparency for JPEG
       if (format === 'jpeg') {
           ctx.fillStyle = '#FFFFFF';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -183,15 +228,9 @@ const Infographic: React.FC<InfographicProps> = ({ image, onEdit, isEditing, use
     
     let shareUrl = '';
     switch (platform) {
-      case 'twitter':
-        shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
-        break;
-      case 'facebook':
-        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-        break;
-      case 'linkedin':
-        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
-        break;
+      case 'twitter': shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`; break;
+      case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`; break;
+      case 'linkedin': shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`; break;
     }
     window.open(shareUrl, '_blank', 'noopener,noreferrer');
     setShowShareMenu(false);
@@ -223,55 +262,168 @@ const Infographic: React.FC<InfographicProps> = ({ image, onEdit, isEditing, use
               className="w-full h-auto object-contain max-h-[75vh] md:max-h-[85vh] rounded-2xl relative z-10 cursor-zoom-in transition-all duration-700 hover:scale-[1.015] shadow-2xl ring-1 ring-white/10 dark:brightness-[0.95] dark:contrast-[1.05]"
             />
 
-            {/* Editing Overlay */}
+            {/* Matrix Editor Overlay */}
             {isEditMode && (
-              <div className="absolute inset-0 z-20 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center rounded-2xl animate-in fade-in duration-300">
-                <div className="w-full max-w-2xl bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-[0_50px_100px_rgba(0,0,0,0.4)] border border-white/10 scale-100 animate-in zoom-in-95 duration-300">
+              <div className="absolute inset-0 z-20 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center rounded-2xl animate-in fade-in duration-300 px-4">
+                <div className="w-full max-w-2xl bg-white dark:bg-slate-900 p-6 md:p-8 rounded-[2.5rem] shadow-[0_50px_100px_rgba(0,0,0,0.4)] border border-white/10 scale-100 animate-in zoom-in-95 duration-300 max-h-[90%] overflow-y-auto custom-scrollbar">
                    <div className="flex items-center justify-between mb-8">
                       <div className="flex items-center gap-3">
                          <div className="p-2 bg-cyan-500/10 rounded-lg">
                             <Edit3 className="w-5 h-5 text-cyan-500" />
                          </div>
-                         <h3 className="text-xl font-display font-bold text-slate-900 dark:text-white">Edit Visualization</h3>
+                         <h3 className="text-xl font-display font-bold text-slate-900 dark:text-white">Matrix Editor</h3>
                       </div>
                       <button onClick={() => setIsEditMode(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
                         <X className="w-5 h-5 text-slate-400" />
                       </button>
                    </div>
 
-                   <form onSubmit={handleSubmit} className="mb-8">
-                      <div className="relative group">
-                        <input 
-                          ref={editInputRef}
-                          autoFocus
-                          type="text" 
-                          value={editPrompt}
-                          onChange={(e) => setEditPrompt(e.target.value)}
-                          placeholder="Describe the changes you want to see..."
-                          className="w-full px-6 py-5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold text-lg focus:ring-2 focus:ring-cyan-500/50 outline-none transition-all pr-32"
-                        />
-                        <button 
-                          type="submit" 
-                          disabled={!editPrompt.trim() || isEditing}
-                          className="absolute right-3 top-3 bottom-3 px-6 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-black uppercase text-[10px] tracking-widest transition-all disabled:opacity-50"
-                        >
-                          {isEditing ? <RefreshCcw className="w-4 h-4 animate-spin" /> : "Apply"}
-                        </button>
-                      </div>
-                   </form>
-
-                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {QUICK_EDITS.map((edit, idx) => (
-                        <button 
-                          key={idx} 
-                          onClick={() => applyQuickEdit(edit.prompt)}
-                          className="flex flex-col items-center justify-center gap-3 p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-2xl hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all group"
-                        >
-                          <edit.icon className="w-5 h-5 text-slate-400 dark:text-slate-600 group-hover:text-cyan-500 transition-colors" />
-                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white">{edit.label}</span>
-                        </button>
-                      ))}
+                   {/* Tabs for Editor */}
+                   <div className="flex items-center gap-2 p-1 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-white/5 mb-8">
+                      <button 
+                        onClick={() => setEditTab('prompts')}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${editTab === 'prompts' ? 'bg-white dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                      >
+                        <MessageSquarePlus className="w-3.5 h-3.5" />
+                        Aesthetics
+                      </button>
+                      <button 
+                        onClick={() => setEditTab('text')}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${editTab === 'text' ? 'bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-400 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                      >
+                        <ALargeSmall className="w-3.5 h-3.5" />
+                        Text Refinery
+                      </button>
+                      <button 
+                        onClick={() => setEditTab('elements')}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${editTab === 'elements' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                      >
+                        <Shapes className="w-3.5 h-3.5" />
+                        Visual Elements
+                      </button>
                    </div>
+
+                   {editTab === 'prompts' ? (
+                     <div className="animate-in fade-in duration-500">
+                        <form onSubmit={handleSubmit} className="mb-8">
+                          <div className="relative group">
+                            <input 
+                              ref={editInputRef}
+                              autoFocus
+                              type="text" 
+                              value={editPrompt}
+                              onChange={(e) => setEditPrompt(e.target.value)}
+                              placeholder="Describe structural changes..."
+                              className="w-full px-6 py-5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold text-lg focus:ring-2 focus:ring-cyan-500/50 outline-none transition-all pr-32"
+                            />
+                            <button 
+                              type="submit" 
+                              disabled={!editPrompt.trim() || isEditing}
+                              className="absolute right-3 top-3 bottom-3 px-6 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-black uppercase text-[10px] tracking-widest transition-all disabled:opacity-50"
+                            >
+                              {isEditing ? <RefreshCcw className="w-4 h-4 animate-spin" /> : "Apply"}
+                            </button>
+                          </div>
+                        </form>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          {QUICK_EDITS.map((edit, idx) => (
+                            <button 
+                              key={idx} 
+                              onClick={() => applyQuickEdit(edit.prompt)}
+                              className="flex flex-col items-center justify-center gap-3 p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-2xl hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all group"
+                            >
+                              <edit.icon className="w-5 h-5 text-slate-400 dark:text-slate-600 group-hover:text-cyan-500 transition-colors" />
+                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white">{edit.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                     </div>
+                   ) : editTab === 'text' ? (
+                     <div className="animate-in fade-in duration-500 space-y-8">
+                        <form onSubmit={handleTextReplace} className="space-y-4">
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                    <TextCursorInput className="w-3 h-3" />
+                                    Original Text
+                                 </label>
+                                 <input 
+                                    type="text" 
+                                    value={originalText}
+                                    onChange={(e) => setOriginalText(e.target.value)}
+                                    placeholder="Text to replace..."
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold"
+                                 />
+                              </div>
+                              <div className="space-y-2">
+                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                    <Sparkles className="w-3 h-3 text-cyan-500" />
+                                    New Content
+                                 </label>
+                                 <input 
+                                    type="text" 
+                                    value={newText}
+                                    onChange={(e) => setNewText(e.target.value)}
+                                    placeholder="Replace with..."
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold"
+                                 />
+                              </div>
+                           </div>
+                           <button 
+                              type="submit"
+                              disabled={!originalText.trim() || !newText.trim() || isEditing}
+                              className="w-full py-4 bg-purple-600 hover:bg-purple-500 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all shadow-lg disabled:opacity-50"
+                           >
+                              {isEditing ? <RefreshCcw className="w-4 h-4 animate-spin mx-auto" /> : "Modify Typography"}
+                           </button>
+                        </form>
+
+                        <div>
+                           <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
+                              Global Text Enhancements
+                           </h4>
+                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                              {TEXT_TRANSFORMS.map((edit, idx) => (
+                                <button 
+                                  key={idx} 
+                                  onClick={() => applyQuickEdit(edit.prompt)}
+                                  className="flex flex-col items-center justify-center gap-3 p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-2xl hover:border-purple-500/50 hover:bg-purple-500/5 transition-all group"
+                                >
+                                  <edit.icon className="w-5 h-5 text-slate-400 dark:text-slate-600 group-hover:text-purple-500 transition-colors" />
+                                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white">{edit.label}</span>
+                                </button>
+                              ))}
+                           </div>
+                        </div>
+                     </div>
+                   ) : (
+                     <div className="animate-in fade-in duration-500 space-y-8">
+                        {VISUAL_ELEMENTS.map((cat, catIdx) => (
+                          <div key={catIdx}>
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                               <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                               {cat.category}
+                            </h4>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                              {cat.items.map((item, itemIdx) => (
+                                <button 
+                                  key={itemIdx} 
+                                  onClick={() => applyQuickEdit(item.prompt)}
+                                  className="flex flex-col items-center justify-center gap-2 p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-2xl hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all group"
+                                >
+                                  <div className="p-2 bg-white dark:bg-slate-900 rounded-lg group-hover:scale-110 transition-transform">
+                                    <item.icon className="w-4 h-4 text-slate-500 group-hover:text-indigo-500" />
+                                  </div>
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white">{item.name}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                     </div>
+                   )}
                 </div>
               </div>
             )}
@@ -315,7 +467,7 @@ const Infographic: React.FC<InfographicProps> = ({ image, onEdit, isEditing, use
         </div>
       </div>
 
-      {/* NEW INTERACTIVE TIMELINE */}
+      {/* INTERACTIVE TIMELINE */}
       {image.timeline && image.timeline.length > 0 && (
         <div className="w-full bg-white/80 dark:bg-slate-900/60 backdrop-blur-3xl rounded-[3rem] border border-slate-200 dark:border-white/5 p-8 md:p-12 mb-16 shadow-2xl overflow-hidden relative group/timeline">
           <div className="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.1] pointer-events-none">
@@ -342,15 +494,12 @@ const Infographic: React.FC<InfographicProps> = ({ image, onEdit, isEditing, use
           </div>
 
           <div className="relative mb-16 px-4 md:px-8">
-             {/* Main Track */}
              <div className="h-1 bg-slate-200 dark:bg-slate-800 rounded-full w-full relative">
-                {/* Scrubbing Highlight */}
                 <div 
                   className="absolute h-full bg-gradient-to-r from-cyan-500 to-indigo-500 rounded-full transition-all duration-700 ease-out"
                   style={{ width: `${(activeTimelineIndex / (image.timeline.length - 1)) * 100}%` }}
                 ></div>
                 
-                {/* Timeline Markers */}
                 <div className="absolute top-0 left-0 w-full h-full flex justify-between items-center px-0">
                   {image.timeline.map((item, idx) => (
                     <button 
@@ -377,7 +526,6 @@ const Infographic: React.FC<InfographicProps> = ({ image, onEdit, isEditing, use
              </div>
           </div>
 
-          {/* Event Content Area */}
           <div className="relative bg-slate-50/50 dark:bg-slate-950/40 rounded-[2rem] border border-slate-100 dark:border-white/5 p-8 md:p-10 transition-all duration-1000">
              <div key={activeTimelineIndex} className="animate-in fade-in slide-in-from-right-8 duration-700 flex flex-col md:flex-row gap-8 items-start">
                 <div className="md:w-1/3 flex flex-col">
@@ -437,7 +585,6 @@ const Infographic: React.FC<InfographicProps> = ({ image, onEdit, isEditing, use
         </div>
         
         <div className="mt-12 flex flex-wrap justify-center gap-6 pb-20">
-            {/* Export Whole Generation Button */}
             <button 
                 onClick={handleExportPdf}
                 disabled={isExportingPdf}
@@ -447,7 +594,6 @@ const Infographic: React.FC<InfographicProps> = ({ image, onEdit, isEditing, use
                 <span>{isExportingPdf ? 'Synthesizing PDF...' : 'Export Whole Report (PDF)'}</span>
             </button>
 
-            {/* Save to Workspace Button */}
             <button 
                 onClick={handleSaveToWorkspace}
                 className={`group flex items-center gap-4 px-10 py-5 bg-white dark:bg-slate-950 rounded-3xl border transition-all hover:-translate-y-1 active:scale-95 shadow-xl font-bold uppercase text-[11px] tracking-widest ${
@@ -461,11 +607,11 @@ const Infographic: React.FC<InfographicProps> = ({ image, onEdit, isEditing, use
             </button>
 
             <button 
-                onClick={() => setIsEditMode(true)}
-                className="group flex items-center gap-4 px-10 py-5 bg-white dark:bg-slate-950 rounded-3xl border border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-300 hover:border-cyan-500/40 transition-all hover:-translate-y-1 active:scale-95 shadow-xl font-bold uppercase text-[11px] tracking-widest"
+                onClick={() => { setIsEditMode(true); setEditTab('text'); }}
+                className="group flex items-center gap-4 px-10 py-5 bg-white dark:bg-slate-950 rounded-3xl border border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-300 hover:border-purple-500/40 transition-all hover:-translate-y-1 active:scale-95 shadow-xl font-bold uppercase text-[11px] tracking-widest"
             >
-                <Edit3 className="w-5 h-5 text-cyan-500 group-hover:scale-110 transition-transform" />
-                <span>Open Matrix Editor</span>
+                <ALargeSmall className="w-5 h-5 text-purple-500 group-hover:scale-110 transition-transform" />
+                <span>Text Refinery Matrix</span>
             </button>
 
             <button 
@@ -478,7 +624,7 @@ const Infographic: React.FC<InfographicProps> = ({ image, onEdit, isEditing, use
 
             <div className="relative" ref={shareMenuRef}>
               <button 
-                  onClick={handleShareSystem}
+                  onClick={() => setShowShareMenu(!showShareMenu)}
                   className="group flex items-center gap-4 bg-white dark:bg-slate-950 px-10 py-5 rounded-3xl border border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-300 hover:border-cyan-500/40 transition-all hover:-translate-y-1 active:scale-95 shadow-xl font-bold uppercase text-[11px] tracking-widest"
               >
                   {shareSuccess ? <Check className="w-5 h-5 text-green-500" /> : <Share className="w-5 h-5 text-cyan-500 group-hover:rotate-12 transition-transform" />}

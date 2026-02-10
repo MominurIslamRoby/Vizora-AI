@@ -8,16 +8,14 @@ import { AspectRatio, ComplexityLevel, VisualStyle, ResearchResult, SearchResult
 import { getContextForPrompt } from "./memoryService";
 
 /**
- * Safely retrieves the API key. 
- * Prioritizes the environment variable process.env.API_KEY as per system requirements,
- * but uses the user-provided key as a primary source to resolve deployment connectivity issues.
+ * Safely retrieves the API key from the environment.
+ * Uses process.env.API_KEY which is injected by the deployment platform (e.g., Netlify).
  */
 const getAi = () => {
-  // Directly using the key provided by the user to resolve the 'Synthesis Disrupted' error on Netlify.
-  const apiKey = 'AIzaSyA7gWPpvsgBdxavbk7ZSMrO-Eo8X3lVbSU' || process.env.API_KEY;
+  const apiKey = process.env.API_KEY;
   
   if (!apiKey) {
-    throw new Error("API_KEY_MISSING: The Google GenAI API key is not defined.");
+    throw new Error("API_KEY_MISSING: The synthesis engine cannot find a valid API key in the environment.");
   }
   return new GoogleGenAI({ apiKey });
 };
@@ -37,7 +35,6 @@ async function callWithRetry<T>(fn: (attempt: number) => Promise<T>, maxRetries 
       const status = err.status || err.code;
       const message = err.message?.toLowerCase() || "";
       
-      // Retry on rate limits or internal server errors
       if ((status === 429 || status === 500 || status === 503 || message.includes("quota") || message.includes("exhausted")) && i < maxRetries - 1) {
         const delay = Math.pow(2, i) * 2000 + Math.random() * 1000;
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -87,12 +84,8 @@ export const researchTopicForPrompt = async (
       [Detailed image prompt. Style: ${style}.]
     `;
 
-    // Attempt to use Flash if Pro fails or on later retries to ensure delivery
     const modelToUse = (isDeepDive && attempt === 0) ? PRO_MODEL : FLASH_MODEL;
-
-    const config: any = {
-      tools: [{ googleSearch: {} }],
-    };
+    const config: any = { tools: [{ googleSearch: {} }] };
 
     if (modelToUse === PRO_MODEL) {
       config.thinkingConfig = { thinkingBudget: 16000 };
@@ -106,20 +99,17 @@ export const researchTopicForPrompt = async (
 
     const text = response.text || "";
     
-    // Improved regex to handle markdown bolding or slight formatting variations
     const factsMatch = text.match(/(?:\*\*|#)*FACTS:?(?:\*\*|#)*\s*([\s\S]*?)(?=(?:\*\*|#)*TIMELINE:?|(?:\*\*|#)*DETAILED_SUMMARY:?|(?:\*\*|#)*IMAGE_PROMPT:?|$)/i);
     const timelineMatch = text.match(/(?:\*\*|#)*TIMELINE:?(?:\*\*|#)*\s*([\s\S]*?)(?=(?:\*\*|#)*DETAILED_SUMMARY:?|(?:\*\*|#)*IMAGE_PROMPT:?|$)/i);
     const summaryMatch = text.match(/(?:\*\*|#)*DETAILED_SUMMARY:?(?:\*\*|#)*\s*([\s\S]*?)(?=(?:\*\*|#)*IMAGE_PROMPT:?|$)/i);
     const promptMatch = text.match(/(?:\*\*|#)*IMAGE_PROMPT:?(?:\*\*|#)*\s*([\s\S]*?)$/i);
 
     const facts = factsMatch ? factsMatch[1].trim().split('\n').map(f => f.replace(/^[-*]\s*/, '').trim()).filter(f => f) : [];
-    
     const timeline: TimelineItem[] = [];
     if (timelineMatch) {
       const lines = timelineMatch[1].trim().split('\n');
       lines.forEach(line => {
-        const cleanLine = line.replace(/^[-*]\s*/, '');
-        const parts = cleanLine.split('|');
+        const parts = line.replace(/^[-*]\s*/, '').split('|');
         if (parts.length >= 2) {
           timeline.push({
             year: parts[0].trim(),
@@ -161,10 +151,9 @@ export const generateInfographicImage = async (prompt: string, aspectRatio: Aspe
       contents: { parts: [{ text: prompt }] },
       config: { imageConfig: { aspectRatio } }
     });
-
     const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
     if (part?.inlineData?.data) return `data:image/png;base64,${part.inlineData.data}`;
-    throw new Error("IMAGE_GEN_FAILED: The model did not return image data.");
+    throw new Error("IMAGE_GEN_FAILED");
   });
 };
 
@@ -184,84 +173,50 @@ export const editInfographicImage = async (currentImageBase64: string, editInstr
     });
     const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
     if (part?.inlineData?.data) return `data:image/png;base64,${part.inlineData.data}`;
-    throw new Error("IMAGE_EDIT_FAILED: Image modification returned no data.");
+    throw new Error("IMAGE_EDIT_FAILED");
   });
 };
 
 export const synthesizeNeuralSpeech = async (text: string, voice: 'Kore' | 'Zephyr' = 'Kore'): Promise<string> => {
   return await callWithRetry(async () => {
-    const sanitizedText = text
-      .replace(/[#*_~`>]/g, '')
-      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
-      .slice(0, 3000)
-      .trim();
-
-    if (!sanitizedText) throw new Error("TTS_EMPTY_TEXT: No readable text found for synthesis.");
-
+    const sanitizedText = text.replace(/[#*_~`>]/g, '').slice(0, 3000).trim();
+    if (!sanitizedText) throw new Error("TTS_EMPTY_TEXT");
     const ai = getAi();
     const response = await ai.models.generateContent({
       model: TTS_MODEL,
       contents: [{ parts: [{ text: sanitizedText }] }],
       config: {
         responseModalities: [Modality.AUDIO],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: voice },
-          },
-        },
+        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },
       },
     });
-
     const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-    if (!base64Audio) throw new Error("TTS_DATA_MISSING: Audio synthesis returned no data.");
+    if (!base64Audio) throw new Error("TTS_DATA_MISSING");
     return base64Audio;
   });
 };
 
-export const streamChatWithGrounding = async (
-  topic: string,
-  history: ChatMessage[],
-  onChunk: (text: string) => void,
-  onComplete: (finalText: string, sources: SearchResultItem[]) => void
-): Promise<void> => {
+export const streamChatWithGrounding = async (topic: string, history: ChatMessage[], onChunk: (text: string) => void, onComplete: (finalText: string, sources: SearchResultItem[]) => void): Promise<void> => {
   return await callWithRetry(async () => {
     const ai = getAi();
-    
-    const contents = history.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.text }]
-    }));
-
+    const contents = history.map(msg => ({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] }));
     const responseStream = await ai.models.generateContentStream({
       model: PRO_MODEL,
       contents,
       config: {
-        systemInstruction: `You are a research assistant for Vizora. Research topic: "${topic}". Ground your answers in facts via Google Search.`,
+        systemInstruction: `You are a research assistant for Vizora. Topic: "${topic}". Ground answers in Google Search.`,
         tools: [{ googleSearch: {} }],
       },
     });
-
     let fullText = "";
     const sources: SearchResultItem[] = [];
-
     for await (const chunk of responseStream) {
-      const text = chunk.text;
-      if (text) {
-        fullText += text;
-        onChunk(fullText);
-      }
-      
+      if (chunk.text) { fullText += chunk.text; onChunk(fullText); }
       const groundingChunks = chunk.candidates?.[0]?.groundingMetadata?.groundingChunks;
       if (groundingChunks) {
-        groundingChunks.forEach(c => {
-          if (c.web?.uri && c.web?.title) {
-            sources.push({ title: c.web.title, url: c.web.uri });
-          }
-        });
+        groundingChunks.forEach(c => { if (c.web?.uri && c.web?.title) sources.push({ title: c.web.title, url: c.web.uri }); });
       }
     }
-
-    const uniqueSources = Array.from(new Map(sources.map(s => [s.url, s])).values());
-    onComplete(fullText, uniqueSources);
+    onComplete(fullText, Array.from(new Map(sources.map(s => [s.url, s])).values()));
   });
 };
