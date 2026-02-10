@@ -126,7 +126,6 @@ export const exportGenerationToPdf = async (image: GeneratedImage) => {
   }
 
   // 5. Footer on all pages
-  // Fix: Use doc.getNumberOfPages() directly as per modern jsPDF types
   const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
