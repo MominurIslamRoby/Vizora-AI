@@ -39,8 +39,6 @@ export const exportGenerationToPdf = async (image: GeneratedImage) => {
 
   // 2. Infographic Image
   try {
-    // We need to determine image dimensions to scale it correctly
-    // Create a temporary image to get original aspect ratio
     const img = new Image();
     img.src = image.data;
     
@@ -78,7 +76,6 @@ export const exportGenerationToPdf = async (image: GeneratedImage) => {
 
   // 4. Detailed Report Section
   if (image.detailedSummary) {
-    // Check if we need a new page before starting the summary
     if (cursorY > pageHeight - 40) {
       doc.addPage();
       cursorY = margin;
@@ -94,7 +91,6 @@ export const exportGenerationToPdf = async (image: GeneratedImage) => {
     doc.setFontSize(11);
     doc.setTextColor(50);
 
-    // Simple markdown parsing for the PDF
     const lines = image.detailedSummary.split('\n');
     
     for (const line of lines) {
@@ -103,7 +99,6 @@ export const exportGenerationToPdf = async (image: GeneratedImage) => {
         continue;
       }
 
-      // Check for page overflow
       if (cursorY > pageHeight - margin) {
         doc.addPage();
         cursorY = margin;
@@ -111,7 +106,6 @@ export const exportGenerationToPdf = async (image: GeneratedImage) => {
 
       let cleanLine = line.replace(/[#*]/g, '').trim();
       
-      // Handle simple formatting based on original line start
       if (line.startsWith('###')) {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(12);
@@ -132,7 +126,8 @@ export const exportGenerationToPdf = async (image: GeneratedImage) => {
   }
 
   // 5. Footer on all pages
-  const totalPages = doc.internal.getNumberOfPages();
+  // Fix: Use doc.getNumberOfPages() directly as per modern jsPDF types
+  const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
     doc.setFontSize(8);
@@ -140,7 +135,6 @@ export const exportGenerationToPdf = async (image: GeneratedImage) => {
     doc.text(`Vizora Intelligence Matrix • Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
   }
 
-  // Save the PDF
   const filename = `vizora-report-${image.prompt.toLowerCase().replace(/\s+/g, '-')}.pdf`;
   doc.save(filename);
 };
