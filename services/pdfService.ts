@@ -1,4 +1,3 @@
-
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -126,7 +125,9 @@ export const exportGenerationToPdf = async (image: GeneratedImage) => {
   }
 
   // 5. Footer on all pages
-  const totalPages = doc.getNumberOfPages();
+  // Note: Cast doc as any temporarily if types still conflict, 
+  // though getNumberOfPages() is standard on the jsPDF instance.
+  const totalPages = (doc as any).getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
     doc.setFontSize(8);

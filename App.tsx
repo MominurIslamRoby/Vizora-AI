@@ -1,4 +1,3 @@
-
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -117,11 +116,13 @@ const App: React.FC = () => {
       }
       setImageHistory([newImage, ...imageHistory]);
     } catch (err: any) {
+      console.error("Gemini Error:", err);
       let userFriendlyMessage = 'Synthesis Disrupted: Neural link lost.';
+      
       if (err.message?.includes('API_KEY_MISSING')) {
-        userFriendlyMessage = 'Configuration Error: API variables not synced. Ensure you have triggered a new deploy on Netlify after adding the API_KEY.';
-      } else if (err.status === 429) {
-        userFriendlyMessage = 'System Overloaded: Rate limit reached.';
+        userFriendlyMessage = 'Configuration Error: API variables not synced. Ensure you have added API_KEY in Vercel Settings and redeployed.';
+      } else if (err.status === 429 || err.message?.toLowerCase().includes('quota') || err.message?.toLowerCase().includes('429')) {
+        userFriendlyMessage = 'System Overloaded: Your Gemini API quota is exhausted. Please wait 60 seconds or upgrade your API tier in Google AI Studio.';
       } else if (err.message) {
         userFriendlyMessage = `Engine Error: ${err.message}`;
       }
@@ -275,7 +276,7 @@ const App: React.FC = () => {
                   <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-6 font-medium">{error}</p>
                   <div className="flex items-center gap-4">
                     <button onClick={() => handleGenerate({ preventDefault: () => {} } as any)} className="px-6 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Retry Connection</button>
-                    <div className="flex items-center gap-2 text-slate-400"><Info className="w-3.5 h-3.5" /><span className="text-[9px] font-bold uppercase tracking-widest">Verification Required: Trigger a new Netlify deploy</span></div>
+                    <div className="flex items-center gap-2 text-slate-400"><Info className="w-3.5 h-3.5" /><span className="text-[9px] font-bold uppercase tracking-widest">Environment Check Required</span></div>
                   </div>
               </div>
             </div>

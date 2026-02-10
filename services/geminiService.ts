@@ -1,4 +1,3 @@
-
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -16,8 +15,8 @@ const getAiInstance = () => {
   
   // Robust check for various 'empty' states that can occur in CI/CD environments
   if (!apiKey || apiKey === "undefined" || apiKey === "null" || apiKey.trim() === "") {
-    console.error("CRITICAL: API_KEY is missing from the environment. Check Netlify Environment Variables.");
-    throw new Error("API_KEY_MISSING: The neural engine failed to detect the API_KEY variable. Ensure the key is named exactly 'API_KEY' in Netlify and trigger a 'Clear cache and deploy'.");
+    console.error("CRITICAL: API_KEY is missing from the environment. Check Vercel Environment Variables.");
+    throw new Error("API_KEY_MISSING: The neural engine failed to detect the API_KEY variable. Ensure the key is named exactly 'API_KEY' in Vercel and trigger a redeploy.");
   }
   
   return new GoogleGenAI({ apiKey });
