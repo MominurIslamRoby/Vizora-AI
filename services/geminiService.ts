@@ -8,15 +8,18 @@ import { AspectRatio, ComplexityLevel, VisualStyle, ResearchResult, SearchResult
 import { getContextForPrompt } from "./memoryService";
 
 /**
- * Safely retrieves the API key from the environment.
- * Uses process.env.API_KEY which is injected by the deployment platform (e.g., Netlify).
+ * Returns a fresh GoogleGenAI instance.
+ * Strictly adheres to guidelines: uses process.env.API_KEY directly.
  */
-const getAi = () => {
+const getAiInstance = () => {
   const apiKey = process.env.API_KEY;
   
-  if (!apiKey) {
-    throw new Error("API_KEY_MISSING: The synthesis engine cannot find a valid API key in the environment.");
+  // Robust check for various 'empty' states that can occur in CI/CD environments
+  if (!apiKey || apiKey === "undefined" || apiKey === "null" || apiKey.trim() === "") {
+    console.error("CRITICAL: API_KEY is missing from the environment. Check Netlify Environment Variables.");
+    throw new Error("API_KEY_MISSING: The neural engine failed to detect the API_KEY variable. Ensure the key is named exactly 'API_KEY' in Netlify and trigger a 'Clear cache and deploy'.");
   }
+  
   return new GoogleGenAI({ apiKey });
 };
 
@@ -35,6 +38,7 @@ async function callWithRetry<T>(fn: (attempt: number) => Promise<T>, maxRetries 
       const status = err.status || err.code;
       const message = err.message?.toLowerCase() || "";
       
+      // Retry on transient errors or rate limits
       if ((status === 429 || status === 500 || status === 503 || message.includes("quota") || message.includes("exhausted")) && i < maxRetries - 1) {
         const delay = Math.pow(2, i) * 2000 + Math.random() * 1000;
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -55,37 +59,34 @@ export const researchTopicForPrompt = async (
 ): Promise<ResearchResult> => {
   
   return await callWithRetry(async (attempt) => {
-    const ai = getAi();
+    const ai = getAiInstance();
     const memoryContext = getContextForPrompt(topic);
     
-    const systemPrompt = `
-      You are an expert researcher for Vizora.
-      Your goal is to research the topic: "${topic}" using Google Search.
-      Target Audience: ${level}.
-      
-      ${memoryContext}
+    const systemInstruction = `You are an expert researcher for Vizora. Research the topic: "${topic}" using Google Search for a ${level} audience. Style: ${style}. Language: ${language}. ${memoryContext}`;
 
-      Provide a comprehensive response in the following format EXACTLY:
+    const prompt = `
+      Perform comprehensive research and provide the following:
       
       FACTS:
-      - [Brief Fact 1]
-      - [Brief Fact 2]
-      - [Brief Fact 3]
+      - [Key Fact 1]
+      - [Key Fact 2]
+      - [Key Fact 3]
       
       TIMELINE:
-      - [Year or Period] | [Short Title] | [Detailed description of the event]
-      - [Year or Period] | [Short Title] | [Detailed description of the event]
-      - [Year or Period] | [Short Title] | [Detailed description of the event]
-
+      - [Timeframe] | [Title] | [Deep Description]
+      
       DETAILED_SUMMARY:
-      [Provide a structured answer in ${language}. Use Markdown for headings and lists.]
+      [Structured Markdown Analysis]
       
       IMAGE_PROMPT:
-      [Detailed image prompt. Style: ${style}.]
+      [Visual directive for infographic generation]
     `;
 
     const modelToUse = (isDeepDive && attempt === 0) ? PRO_MODEL : FLASH_MODEL;
-    const config: any = { tools: [{ googleSearch: {} }] };
+    const config: any = { 
+      tools: [{ googleSearch: {} }],
+      systemInstruction: systemInstruction
+    };
 
     if (modelToUse === PRO_MODEL) {
       config.thinkingConfig = { thinkingBudget: 16000 };
@@ -93,16 +94,16 @@ export const researchTopicForPrompt = async (
 
     const response = await ai.models.generateContent({
       model: modelToUse,
-      contents: systemPrompt,
+      contents: prompt,
       config,
     });
 
     const text = response.text || "";
     
-    const factsMatch = text.match(/(?:\*\*|#)*FACTS:?(?:\*\*|#)*\s*([\s\S]*?)(?=(?:\*\*|#)*TIMELINE:?|(?:\*\*|#)*DETAILED_SUMMARY:?|(?:\*\*|#)*IMAGE_PROMPT:?|$)/i);
-    const timelineMatch = text.match(/(?:\*\*|#)*TIMELINE:?(?:\*\*|#)*\s*([\s\S]*?)(?=(?:\*\*|#)*DETAILED_SUMMARY:?|(?:\*\*|#)*IMAGE_PROMPT:?|$)/i);
-    const summaryMatch = text.match(/(?:\*\*|#)*DETAILED_SUMMARY:?(?:\*\*|#)*\s*([\s\S]*?)(?=(?:\*\*|#)*IMAGE_PROMPT:?|$)/i);
-    const promptMatch = text.match(/(?:\*\*|#)*IMAGE_PROMPT:?(?:\*\*|#)*\s*([\s\S]*?)$/i);
+    const factsMatch = text.match(/FACTS:?([\s\S]*?)(?=TIMELINE:?|DETAILED_SUMMARY:?|IMAGE_PROMPT:?|$)/i);
+    const timelineMatch = text.match(/TIMELINE:?([\s\S]*?)(?=DETAILED_SUMMARY:?|IMAGE_PROMPT:?|$)/i);
+    const summaryMatch = text.match(/DETAILED_SUMMARY:?([\s\S]*?)(?=IMAGE_PROMPT:?|$)/i);
+    const promptMatch = text.match(/IMAGE_PROMPT:?([\s\S]*?)$/i);
 
     const facts = factsMatch ? factsMatch[1].trim().split('\n').map(f => f.replace(/^[-*]\s*/, '').trim()).filter(f => f) : [];
     const timeline: TimelineItem[] = [];
@@ -121,7 +122,7 @@ export const researchTopicForPrompt = async (
     }
 
     const detailedSummary = summaryMatch ? summaryMatch[1].trim() : text.slice(0, 1000);
-    const imagePrompt = promptMatch ? promptMatch[1].trim() : `High quality technical infographic about ${topic}, ${style} style`;
+    const imagePrompt = promptMatch ? promptMatch[1].trim() : `Scientific infographic about ${topic}, ${style} style`;
 
     const searchResults: SearchResultItem[] = [];
     const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
@@ -145,7 +146,7 @@ export const researchTopicForPrompt = async (
 
 export const generateInfographicImage = async (prompt: string, aspectRatio: AspectRatio = "16:9"): Promise<string> => {
   return await callWithRetry(async () => {
-    const ai = getAi();
+    const ai = getAiInstance();
     const response = await ai.models.generateContent({
       model: IMAGE_MODEL,
       contents: { parts: [{ text: prompt }] },
@@ -159,7 +160,7 @@ export const generateInfographicImage = async (prompt: string, aspectRatio: Aspe
 
 export const editInfographicImage = async (currentImageBase64: string, editInstruction: string, aspectRatio: AspectRatio = "16:9"): Promise<string> => {
   return await callWithRetry(async () => {
-    const ai = getAi();
+    const ai = getAiInstance();
     const cleanBase64 = currentImageBase64.replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
     const response = await ai.models.generateContent({
       model: IMAGE_MODEL, 
@@ -181,7 +182,7 @@ export const synthesizeNeuralSpeech = async (text: string, voice: 'Kore' | 'Zeph
   return await callWithRetry(async () => {
     const sanitizedText = text.replace(/[#*_~`>]/g, '').slice(0, 3000).trim();
     if (!sanitizedText) throw new Error("TTS_EMPTY_TEXT");
-    const ai = getAi();
+    const ai = getAiInstance();
     const response = await ai.models.generateContent({
       model: TTS_MODEL,
       contents: [{ parts: [{ text: sanitizedText }] }],
@@ -198,7 +199,7 @@ export const synthesizeNeuralSpeech = async (text: string, voice: 'Kore' | 'Zeph
 
 export const streamChatWithGrounding = async (topic: string, history: ChatMessage[], onChunk: (text: string) => void, onComplete: (finalText: string, sources: SearchResultItem[]) => void): Promise<void> => {
   return await callWithRetry(async () => {
-    const ai = getAi();
+    const ai = getAiInstance();
     const contents = history.map(msg => ({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] }));
     const responseStream = await ai.models.generateContentStream({
       model: PRO_MODEL,
